@@ -34,7 +34,7 @@ public class ForexRateController {
 
 
     @GetMapping("/rates")
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+//    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<?> getAllRates(Principal principal) {
         try {
             log.info("User {} requested all forex rates", principal.getName());
