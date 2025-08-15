@@ -1,0 +1,157 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: forex-postgres
+    environment:
+      POSTGRES_DB: forexratedb
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: Mupezeni0102?
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    networks:
+      - forex-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wiremit_user -d forexratedb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: forex-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - forex-network
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # Forex Rate Aggregator Application
+  forex-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: forex-app
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      DB_USERNAME: root
+      DB_PASSWORD: Mupezeni
+      REDIS_HOST: redis
+      JWT_SECRET: mySecretKey123456789012345678901234567890123456789012345678901234567890
+      FIXER_API_KEY: ${FIXER_API_KEY:-your_fixer_api_key}
+      CURRENCYLAYER_API_KEY: ${CURRENCYLAYER_API_KEY:-your_currencylayer_api_key}
+    ports:
+      - "8989:8989"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - forex-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8989/api/v1/auth/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
+  # Nginx Reverse Proxy (Optional)
+  nginx:
+    image: nginx:alpine
+    container_name: forex-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - forex-app
+    networks:
+      - forex-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  forex-network:
+    driver: bridge
+
+---
+# init-db.sql
+-- Database initialization script
+CREATE DATABASE IF NOT EXISTS forexratedb;
+
+-- Create user if not exists
+DO
+$do$
+BEGIN
+IF NOT EXISTS (
+SELECT FROM pg_catalog.pg_roles
+WHERE  rolname = 'wiremit_user') THEN
+
+CREATE ROLE wiremit_user LOGIN PASSWORD 'wiremit_password';
+END IF;
+END
+$do$;
+
+-- Grant privileges
+GRANT ALL PRIVILEGES ON DATABASE forexratedb TO wiremit_user;
+
+-- Connect to the database
+\c forexratedb;
+
+-- Grant schema privileges
+GRANT ALL ON SCHEMA public TO wiremit_user;
+
+-- Create extensions if needed
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- Create indexes for better performance
+-- These will be created by JPA, but can be optimized here
+
+---
+# nginx.conf
+  events {
+  worker_connections 1024;
+}
+
+  http {
+  upstream forex_backend {
+  server forex-app:8080;
+  }
+  
+  # Rate limiting
+  limit_req_zone $binary_remote_addr zone=api:10m rate=10r/s;
+  
+  server {
+  listen 80;
+  server_name localhost;
+  
+  # Security headers
+  add_header X-Frame-Options "SAMEORIGIN" always;
+  add_header X-Content-Type-Options "nosniff" always;
+  add_header X-XSS-Protection "1; mode=block" always;
+  add_header Referrer-Policy "no-referrer-when-downgrade" always;
+  
+  # API routes
+  location /api/ {

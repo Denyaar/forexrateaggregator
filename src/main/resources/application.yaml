@@ -1,1 +1,91 @@
-spring.application.name=forexrateaggregator
+server:
+  port: 8989
+  servlet:
+    context-path: /api/v1
+
+spring:
+  application:
+    name: forexrateaggregator
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/forexratedb
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:Mupezeni0102?}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      connection-timeout: 20000
+      maximum-pool-size: 10
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc:
+          time_zone: UTC
+
+
+
+  cache:
+    type: redis
+    redis:
+      time-to-live: 3600000
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+
+# Security Configuration
+jwt:
+  secret: ${JWT_SECRET:mySecretKey123456789012345678901234567890}
+  expiration: 86400000 # 24 hours in milliseconds
+
+# Forex API Configuration
+forex:
+  apis:
+    exchangerate-api:
+      url: https://api.exchangerate-api.com/v4/latest
+      access-key: ${EXCHANGERATE_API_KEY:9a0fb9c81c7468c5e1748e79}
+      #https://v6.exchangerate-api.com/v6/9a0fb9c81c7468c5e1748e79/latest/USD
+      enabled: true
+    fixer-api:
+      url: http://data.fixer.io/api/latest
+      access-key: ${FIXER_API_KEY:}
+      enabled: true
+    currencylayer-api:
+      url: http://api.currencylayer.com/live
+      access-key: ${CURRENCYLAYER_API_KEY:}
+      enabled: true
+
+  currencies:
+    base: USD
+    targets:
+      - GBP
+      - ZAR
+
+  markup: 0.10
+  refresh-interval: 3600000 # 1 hour in milliseconds
+
+# Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+
+# Logging Configuration
+logging:
+  level:
+    co.zw.mupezeni.wiremit: INFO
+    org.springframework.security: DEBUG
+    org.springframework.web: INFO
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+

@@ -6,7 +6,6 @@
 
 package co.zw.mupezeni.wiremit.forexrateaggregator.dto;
 
-package co.zw.mupezeni.wiremit.forexrateaggregator.model.dto.auth;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Email;
@@ -19,9 +18,6 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
-/**
- * Data Transfer Objects for Authentication endpoints
- */
 public class AuthDTOs {
 
     @Data
