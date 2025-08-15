@@ -143,9 +143,7 @@ public class AuthService {
         return !userRepository.existsByEmail(email);
     }
 
-    /**
-     * Map User entity to UserInfo DTO
-     */
+
     private AuthDTOs.UserInfo mapToUserInfo(User user) {
         return AuthDTOs.UserInfo.builder()
                 .id(user.getId())

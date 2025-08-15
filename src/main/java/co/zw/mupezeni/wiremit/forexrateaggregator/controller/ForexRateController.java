@@ -61,7 +61,7 @@ public class ForexRateController {
             log.info("User {} requested rate for currency: {}", principal.getName(), currency.toUpperCase());
 
             // Validate currency format
-            if (currency == null || currency.length() != 3) {
+            if (currency.length() != 3) {
                 return ResponseEntity.badRequest()
                         .body(new ErrorResponse("Invalid currency format",
                                 "Currency must be a 3-letter code (e.g., GBP, ZAR)"));
@@ -103,7 +103,7 @@ public class ForexRateController {
                     principal.getName(), currency.toUpperCase(), days);
 
             // Validate parameters
-            if (currency == null || currency.length() != 3) {
+            if (currency.length() != 3) {
                 return ResponseEntity.badRequest()
                         .body(new ErrorResponse("Invalid currency format",
                                 "Currency must be a 3-letter code (e.g., GBP, ZAR)"));

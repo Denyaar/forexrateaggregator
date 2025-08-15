@@ -22,7 +22,7 @@ import java.time.LocalDateTime;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/v1/auth")
+@RequestMapping("/auth")
 @RequiredArgsConstructor
 @Slf4j
 @CrossOrigin(origins = "*", maxAge = 3600)
