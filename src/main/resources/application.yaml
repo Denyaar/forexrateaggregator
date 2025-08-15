@@ -50,22 +50,21 @@ forex:
     exchangerate-api:
       url: https://api.exchangerate-api.com/v4/latest
       access-key: ${EXCHANGERATE_API_KEY:9a0fb9c81c7468c5e1748e79}
-      #https://v6.exchangerate-api.com/v6/9a0fb9c81c7468c5e1748e79/latest/USD
       enabled: true
     fixer-api:
-      url: http://data.fixer.io/api/latest
-      access-key: ${FIXER_API_KEY:}
+      url: https://data.fixer.io/api/latest
+      access-key: ${FIXER_API_KEY:your_fixer_api_key}
       enabled: true
     currencylayer-api:
-      url: http://api.currencylayer.com/live
-      access-key: ${CURRENCYLAYER_API_KEY:}
+      url: https://api.currencylayer.com/live
+      access-key: ${CURRENCYLAYER_API_KEY:your_currencylayer_api_key}
       enabled: true
+
 
   currencies:
     base: USD
-    targets:
-      - GBP
-      - ZAR
+    targets: GBP,ZAR
+
 
   markup: 0.10
   refresh-interval: 3600000 # 1 hour in milliseconds

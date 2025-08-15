@@ -1,9 +1,3 @@
-/**
- * Created by tendaimupezeni for forexrateaggregator
- * Date: 8/14/25
- * Time: 8:06 PM
- */
-
 package co.zw.mupezeni.wiremit.forexrateaggregator.service;
 
 import co.zw.mupezeni.wiremit.forexrateaggregator.dto.ForexDTOs;
@@ -14,7 +8,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.reactive.function.client.WebClientException;
 import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
@@ -24,9 +17,7 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
-/**
- * Service for fetching forex rates from external APIs
- */
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -75,22 +66,27 @@ public class ExternalForexApiService {
         }
 
         // Fixer API
-        if (fixerApiEnabled) {
+        if (fixerApiEnabled && !fixerApiKey.equals("your_fixer_api_key")) {
             futures.add(fetchFromFixerApi(baseCurrency));
+        } else {
+            log.warn("Fixer API disabled or no valid API key provided");
         }
 
         // Currency Layer API
-        if (currencyLayerApiEnabled) {
+        if (currencyLayerApiEnabled && !currencyLayerApiKey.equals("your_currencylayer_api_key")) {
             futures.add(fetchFromCurrencyLayerApi(baseCurrency));
+        } else {
+            log.warn("Currency Layer API disabled or no valid API key provided");
         }
 
         // Wait for all API calls to complete
         List<ForexDTOs.ExternalApiResponse> responses = futures.stream()
                 .map(CompletableFuture::join)
                 .filter(Objects::nonNull)
+                .filter(ForexDTOs.ExternalApiResponse::isSuccess)
                 .collect(Collectors.toList());
 
-        log.info("Received {} responses from external APIs", responses.size());
+        log.info("Received {} successful responses from external APIs", responses.size());
         return responses;
     }
 
@@ -100,9 +96,10 @@ public class ExternalForexApiService {
     private CompletableFuture<ForexDTOs.ExternalApiResponse> fetchFromExchangeRateApi(String baseCurrency) {
         return CompletableFuture.supplyAsync(() -> {
             try {
-                log.debug("Fetching rates from Exchange Rate API");
+                log.debug("Fetching rates from Exchange Rate API for base: {}", baseCurrency);
 
                 String url = String.format("%s/%s", exchangeRateApiUrl, baseCurrency);
+                log.debug("Exchange Rate API URL: {}", url);
 
                 Mono<String> response = webClient.get()
                         .uri(url)
@@ -131,15 +128,14 @@ public class ExternalForexApiService {
     private CompletableFuture<ForexDTOs.ExternalApiResponse> fetchFromFixerApi(String baseCurrency) {
         return CompletableFuture.supplyAsync(() -> {
             try {
-                log.debug("Fetching rates from Fixer API");
+                log.debug("Fetching rates from Fixer API for base: {}", baseCurrency);
+
+                String fullUrl = String.format("%s?access_key=%s&base=%s&symbols=USD,GBP,ZAR",
+                        fixerApiUrl, fixerApiKey, baseCurrency);
+                log.debug("Fixer API URL: {}", fullUrl);
 
                 Mono<String> response = webClient.get()
-                        .uri(uriBuilder -> uriBuilder
-                                .path(fixerApiUrl)
-                                .queryParam("access_key", fixerApiKey)
-                                .queryParam("base", baseCurrency)
-                                .queryParam("symbols", "USD,GBP,ZAR")
-                                .build())
+                        .uri(fullUrl)
                         .retrieve()
                         .bodyToMono(String.class)
                         .timeout(TIMEOUT);
@@ -165,15 +161,14 @@ public class ExternalForexApiService {
     private CompletableFuture<ForexDTOs.ExternalApiResponse> fetchFromCurrencyLayerApi(String baseCurrency) {
         return CompletableFuture.supplyAsync(() -> {
             try {
-                log.debug("Fetching rates from Currency Layer API");
+                log.debug("Fetching rates from Currency Layer API for base: {}", baseCurrency);
+
+                String fullUrl = String.format("%s?access_key=%s&source=%s&currencies=USD,GBP,ZAR",
+                        currencyLayerApiUrl, currencyLayerApiKey, baseCurrency);
+                log.debug("Currency Layer API URL: {}", fullUrl);
 
                 Mono<String> response = webClient.get()
-                        .uri(uriBuilder -> uriBuilder
-                                .path(currencyLayerApiUrl)
-                                .queryParam("access_key", currencyLayerApiKey)
-                                .queryParam("source", baseCurrency)
-                                .queryParam("currencies", "USD,GBP,ZAR")
-                                .build())
+                        .uri(fullUrl)
                         .retrieve()
                         .bodyToMono(String.class)
                         .timeout(TIMEOUT);
@@ -200,11 +195,11 @@ public class ExternalForexApiService {
         try {
             JsonNode jsonNode = objectMapper.readTree(responseBody);
 
-            if (jsonNode.has("error")) {
+            if (jsonNode.has("error-type")) {
                 return ForexDTOs.ExternalApiResponse.builder()
                         .source("ExchangeRate-API")
                         .success(false)
-                        .error(jsonNode.get("error").asText())
+                        .error(jsonNode.get("error-type").asText())
                         .timestamp(LocalDateTime.now())
                         .build();
             }
@@ -217,6 +212,8 @@ public class ExternalForexApiService {
                 BigDecimal rate = new BigDecimal(ratesNode.get(currency).asText());
                 rates.put(currency, rate);
             });
+
+            log.debug("Exchange Rate API - Parsed {} rates for base {}", rates.size(), base);
 
             return ForexDTOs.ExternalApiResponse.builder()
                     .source("ExchangeRate-API")
@@ -262,6 +259,8 @@ public class ExternalForexApiService {
                 BigDecimal rate = new BigDecimal(ratesNode.get(currency).asText());
                 rates.put(currency, rate);
             });
+
+            log.debug("Fixer API - Parsed {} rates for base {}", rates.size(), base);
 
             return ForexDTOs.ExternalApiResponse.builder()
                     .source("Fixer")
@@ -309,6 +308,8 @@ public class ExternalForexApiService {
                 BigDecimal rate = new BigDecimal(quotesNode.get(quote).asText());
                 rates.put(targetCurrency, rate);
             });
+
+            log.debug("Currency Layer API - Parsed {} rates for base {}", rates.size(), source);
 
             return ForexDTOs.ExternalApiResponse.builder()
                     .source("CurrencyLayer")

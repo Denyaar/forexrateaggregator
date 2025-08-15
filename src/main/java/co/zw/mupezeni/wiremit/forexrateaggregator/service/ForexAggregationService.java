@@ -1,9 +1,3 @@
-/**
- * Created by tendaimupezeni for forexrateaggregator
- * Date: 8/14/25
- * Time: 8:04 PM
- */
-
 package co.zw.mupezeni.wiremit.forexrateaggregator.service;
 
 
@@ -22,6 +16,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import jakarta.annotation.PostConstruct;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
@@ -31,6 +26,7 @@ import java.util.stream.Collectors;
 
 /**
  * Service for aggregating forex rates from multiple sources
+ * Fixed configuration binding for target currencies
  */
 @Service
 @RequiredArgsConstructor
@@ -48,11 +44,30 @@ public class ForexAggregationService {
     @Value("${forex.currencies.base}")
     private String baseCurrency;
 
-    @Value("#{'${forex.currencies.targets}'.split(',')}")
+    @Value("${forex.currencies.targets}")
+    private String targetCurrenciesString;
+
     private List<String> targetCurrencies;
 
     private static final int SCALE = 6;
     private static final RoundingMode ROUNDING_MODE = RoundingMode.HALF_UP;
+
+    @PostConstruct
+    public void init() {
+        // Parse the comma-separated string into a list
+        if (targetCurrenciesString != null && !targetCurrenciesString.trim().isEmpty()) {
+            targetCurrencies = Arrays.stream(targetCurrenciesString.split(","))
+                    .map(String::trim)
+                    .map(String::toUpperCase)
+                    .collect(Collectors.toList());
+        } else {
+            // Default currencies if not configured
+            targetCurrencies = Arrays.asList("GBP", "ZAR");
+        }
+
+        log.info("Initialized with base currency: {} and target currencies: {}",
+                baseCurrency, targetCurrencies);
+    }
 
     /**
      * Get all current forex rates
@@ -318,5 +333,12 @@ public class ForexAggregationService {
      */
     private String generateCurrencyPair(String base, String target) {
         return String.format("%s-%s", base.toUpperCase(), target.toUpperCase());
+    }
+
+    /**
+     * Get configured target currencies
+     */
+    public List<String> getTargetCurrencies() {
+        return new ArrayList<>(targetCurrencies);
     }
 }
