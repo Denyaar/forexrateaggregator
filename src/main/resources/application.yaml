@@ -1,7 +1,6 @@
 server:
   port: 8989
 
-
 spring:
   application:
     name: forexrateaggregator
