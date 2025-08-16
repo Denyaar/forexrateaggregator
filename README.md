@@ -299,15 +299,7 @@ The application is designed for horizontal scaling:
 
 ### Running Tests
 ```bash
-# Unit tests only
-./mvnw test
 
-# Integration tests
-./mvnw test -Dspring.profiles.active=test
-
-# With coverage report
-./mvnw test jacoco:report
-```
 
 ## 🔧 Configuration
 
