@@ -91,11 +91,6 @@ git clone <repository-url>
 cd forexrateaggregator
 ```
 
-2. **Set environment variables**
-```bash
-export FIXER_API_KEY=your_fixer_api_key
-export CURRENCYLAYER_API_KEY=your_currencylayer_api_key
-```
 
 3. **Start all services**
 ```bash
@@ -104,7 +99,7 @@ docker-compose up -d
 
 4. **Verify deployment**
 ```bash
-curl http://localhost:8080/api/v1/auth/health
+curl http://localhost:8989/api/v1/auth/health
 ```
 
 ### Local Development Setup
@@ -115,8 +110,8 @@ curl http://localhost:8080/api/v1/auth/health
 docker run -d \
   --name postgres \
   -e POSTGRES_DB=forexratedb \
-  -e POSTGRES_USER=wiremit_user \
-  -e POSTGRES_PASSWORD=wiremit_password \
+  -e POSTGRES_USER=root \
+  -e POSTGRES_PASSWORD=Mupezeni0102? \
   -p 5432:5432 \
   postgres:15-alpine
 
@@ -146,7 +141,7 @@ cp src/main/resources/application.yml.example src/main/resources/application.yml
 
 #### 1. User Registration
 ```bash
-curl -X POST http://localhost:8080/api/v1/auth/signup \
+curl -X POST http://localhost:8989/api/v1/auth/signup \
   -H "Content-Type: application/json" \
   -d '{
     "username": "johndoe",
@@ -177,7 +172,7 @@ curl -X POST http://localhost:8080/api/v1/auth/signup \
 
 #### 2. User Login
 ```bash
-curl -X POST http://localhost:8080/api/v1/auth/login \
+curl -X POST http://localhost:8989/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{
     "username": "johndoe",
@@ -212,7 +207,7 @@ Example:
 
 #### Get All Current Rates
 ```bash
-curl -X GET http://localhost:8080/api/v1/rates \
+curl -X GET http://localhost:8989/api/v1/rates \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
@@ -242,13 +237,13 @@ curl -X GET http://localhost:8080/api/v1/rates \
 
 #### Get Specific Currency Rate
 ```bash
-curl -X GET http://localhost:8080/api/v1/rates/GBP \
+curl -X GET http://localhost:8989/api/v1/rates/GBP \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
 #### Get Historical Rates
 ```bash
-curl -X GET "http://localhost:8080/api/v1/historical/rates?currency=GBP&days=7&page=0&size=50" \
+curl -X GET "http://localhost:8989/api/v1/historical/rates?currency=GBP&days=7&page=0&size=50" \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
@@ -394,11 +389,4 @@ The project includes GitHub Actions workflow for:
 - CheckStyle configuration for consistent formatting
 - SonarQube integration for code quality analysis
 - Automated dependency vulnerability scanning
-
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
-
-**Built with ❤️ for Wiremit by the Development Team**
+**
