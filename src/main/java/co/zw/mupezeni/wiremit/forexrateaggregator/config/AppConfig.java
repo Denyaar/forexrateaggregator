@@ -53,23 +53,23 @@ public class AppConfig {
     /**
      * Redis template configuration
      */
-    @Bean
-    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
-        RedisTemplate<String, Object> template = new RedisTemplate<>();
-        template.setConnectionFactory(connectionFactory);
-
-        // Use String serializer for keys
-        template.setKeySerializer(new StringRedisSerializer());
-        template.setHashKeySerializer(new StringRedisSerializer());
-
-        // Use Jackson JSON serializer for values
-        Jackson2JsonRedisSerializer<Object> serializer = new Jackson2JsonRedisSerializer<>(Object.class);
-        template.setValueSerializer(serializer);
-        template.setHashValueSerializer(serializer);
-
-        template.afterPropertiesSet();
-        return template;
-    }
+//    @Bean
+//    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
+//        RedisTemplate<String, Object> template = new RedisTemplate<>();
+//        template.setConnectionFactory(connectionFactory);
+//
+//        // Use String serializer for keys
+//        template.setKeySerializer(new StringRedisSerializer());
+//        template.setHashKeySerializer(new StringRedisSerializer());
+//
+//        // Use Jackson JSON serializer for values
+//        Jackson2JsonRedisSerializer<Object> serializer = new Jackson2JsonRedisSerializer<>(Object.class);
+//        template.setValueSerializer(serializer);
+//        template.setHashValueSerializer(serializer);
+//
+//        template.afterPropertiesSet();
+//        return template;
+//    }
 
     /**
      * Task executor for async operations
