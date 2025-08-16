@@ -35,23 +35,18 @@ public class AuthService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
 
-    /**
-     * Register new user
-     */
+
     public AuthDTOs.AuthResponse signup(AuthDTOs.SignupRequest request) {
         log.info("Attempting to register new user: {}", request.getUsername());
 
-        // Check if username already exists
         if (userRepository.existsByUsername(request.getUsername())) {
             throw new IllegalArgumentException("Username already exists: " + request.getUsername());
         }
 
-        // Check if email already exists
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new IllegalArgumentException("Email already exists: " + request.getEmail());
         }
 
-        // Create new user
         User user = User.builder()
                 .username(request.getUsername())
                 .email(request.getEmail())
@@ -69,7 +64,6 @@ public class AuthService {
         User savedUser = userRepository.save(user);
         log.info("Successfully registered user: {}", savedUser.getUsername());
 
-        // Generate JWT token
         String token = jwtService.generateToken(savedUser);
 
         return AuthDTOs.AuthResponse.builder()
@@ -80,9 +74,6 @@ public class AuthService {
                 .build();
     }
 
-    /**
-     * Authenticate user login
-     */
     public AuthDTOs.AuthResponse login(AuthDTOs.LoginRequest request) {
         log.info("Attempting login for user: {}", request.getUsername());
 
@@ -99,11 +90,9 @@ public class AuthService {
             User user = userRepository.findByUsername(userDetails.getUsername())
                     .orElseThrow(() -> new UsernameNotFoundException("User not found: " + userDetails.getUsername()));
 
-            // Update last login
             userRepository.updateLastLogin(user.getId(), LocalDateTime.now());
             user.setLastLogin(LocalDateTime.now());
 
-            // Generate JWT token
             String token = jwtService.generateToken(userDetails);
 
             log.info("Successfully authenticated user: {}", user.getUsername());
