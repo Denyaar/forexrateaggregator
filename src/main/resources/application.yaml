@@ -53,7 +53,7 @@ forex:
   apis:
     exchangerate-api:
       url: https://api.exchangerate-api.com/v4/latest
-      access-key: ${EXCHANGERATE_API_KEY:9a0fb9c81c7468c5e1748e79}
+#      access-key: ${EXCHANGERATE_API_KEY:9a0fb9c81c7468c5e1748e79}
       enabled: true
     fixer-api:
       url: https://data.fixer.io/api/latest
@@ -89,6 +89,6 @@ logging:
     co.zw.mupezeni.wiremit: INFO
     org.springframework.security: DEBUG
     org.springframework.web: INFO
-    org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+#    org.hibernate.SQL: DEBUG
+#    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
 

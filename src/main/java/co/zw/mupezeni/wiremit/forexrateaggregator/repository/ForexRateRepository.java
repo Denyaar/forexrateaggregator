@@ -31,22 +31,5 @@ public interface ForexRateRepository extends JpaRepository<ForexRate, Long> {
             LocalDateTime endDate,
             Pageable pageable
     );
-    List<ForexRate> findByCurrencyPairOrderByTimestampDesc(String currencyPair, Pageable pageable);
 
-    List<ForexRate> findByBaseCurrencyOrderByTimestampDesc(String baseCurrency);
-
-    List<ForexRate> findByTargetCurrencyOrderByTimestampDesc(String targetCurrency);
-
-    long countByCurrencyPair(String currencyPair);
-
-
-    List<ForexRate> findByTimestampAfterOrderByTimestampDesc(LocalDateTime timestamp);
-
-    @Query("DELETE FROM ForexRate fr WHERE fr.id NOT IN " +
-            "(SELECT fr2.id FROM ForexRate fr2 WHERE fr2.currencyPair = fr.currencyPair " +
-            "ORDER BY fr2.timestamp DESC LIMIT :keepCount)")
-    void deleteOldRates(@Param("keepCount") int keepCount);
-
-    @Query("SELECT DISTINCT fr.currencyPair FROM ForexRate fr")
-    List<String> findDistinctCurrencyPairs();
 }

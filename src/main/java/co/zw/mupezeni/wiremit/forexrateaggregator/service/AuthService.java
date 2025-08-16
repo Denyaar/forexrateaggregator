@@ -121,24 +121,10 @@ public class AuthService {
         }
     }
 
-    /**
-     * Get user by username
-     */
-    public User getUserByUsername(String username) {
-        return userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
-    }
-
-    /**
-     * Check if username is available
-     */
     public boolean isUsernameAvailable(String username) {
         return !userRepository.existsByUsername(username);
     }
 
-    /**
-     * Check if email is available
-     */
     public boolean isEmailAvailable(String email) {
         return !userRepository.existsByEmail(email);
     }
