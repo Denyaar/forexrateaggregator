@@ -1,7 +1,7 @@
 /**
  * Created by tendaimupezeni for forexrateaggregator
  * Date: 8/14/25
- * Time: 7:54 PM
+ * Time: 7:54 PM
  */
 
 package co.zw.mupezeni.wiremit.forexrateaggregator.dto;
@@ -78,6 +78,9 @@ public class ForexDTOs {
         private List<ForexRateResponse> rates;
 
         @JsonProperty("last_updated")
+        @JsonSerialize(using = LocalDateTimeSerializer.class)
+        @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
         private LocalDateTime lastUpdated;
 
         @JsonProperty("total_pairs")
@@ -119,6 +122,9 @@ public class ForexDTOs {
 
         private BigDecimal markup;
 
+        @JsonSerialize(using = LocalDateTimeSerializer.class)
+        @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
         private LocalDateTime timestamp;
     }
 
@@ -128,7 +134,14 @@ public class ForexDTOs {
     @AllArgsConstructor
     public static class DateRange {
 
+        @JsonSerialize(using = LocalDateTimeSerializer.class)
+        @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
         private LocalDateTime from;
+
+        @JsonSerialize(using = LocalDateTimeSerializer.class)
+        @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
         private LocalDateTime to;
     }
 
@@ -142,7 +155,12 @@ public class ForexDTOs {
         private String source;
         private String base;
         private Map<String, BigDecimal> rates;
+
+        @JsonSerialize(using = LocalDateTimeSerializer.class)
+        @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
         private LocalDateTime timestamp;
+
         private boolean success;
         private String error;
     }
@@ -176,6 +194,9 @@ public class ForexDTOs {
         @JsonProperty("source_count")
         private Integer sourceCount;
 
+        @JsonSerialize(using = LocalDateTimeSerializer.class)
+        @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
         private LocalDateTime timestamp;
     }
 
@@ -187,6 +208,10 @@ public class ForexDTOs {
 
         private String source;
         private BigDecimal rate;
+
+        @JsonSerialize(using = LocalDateTimeSerializer.class)
+        @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
         private LocalDateTime timestamp;
     }
 
@@ -209,9 +234,15 @@ public class ForexDTOs {
         private Map<String, Boolean> apiResponses;
 
         @JsonProperty("update_timestamp")
+        @JsonSerialize(using = LocalDateTimeSerializer.class)
+        @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
         private LocalDateTime updateTimestamp;
 
         @JsonProperty("next_update")
+        @JsonSerialize(using = LocalDateTimeSerializer.class)
+        @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
         private LocalDateTime nextUpdate;
     }
 }

@@ -10,10 +10,6 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
-import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.reactive.function.client.ExchangeStrategies;
@@ -42,34 +38,6 @@ public class AppConfig {
 
     /**
      * ObjectMapper bean with Java Time module
-     */
-    @Bean
-    public ObjectMapper objectMapper() {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new JavaTimeModule());
-        return mapper;
-    }
-
-    /**
-     * Redis template configuration
-     */
-//    @Bean
-//    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
-//        RedisTemplate<String, Object> template = new RedisTemplate<>();
-//        template.setConnectionFactory(connectionFactory);
-//
-//        // Use String serializer for keys
-//        template.setKeySerializer(new StringRedisSerializer());
-//        template.setHashKeySerializer(new StringRedisSerializer());
-//
-//        // Use Jackson JSON serializer for values
-//        Jackson2JsonRedisSerializer<Object> serializer = new Jackson2JsonRedisSerializer<>(Object.class);
-//        template.setValueSerializer(serializer);
-//        template.setHashValueSerializer(serializer);
-//
-//        template.afterPropertiesSet();
-//        return template;
-//    }
 
     /**
      * Task executor for async operations
