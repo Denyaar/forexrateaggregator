@@ -46,17 +46,6 @@ public class CacheService {
     }
 
 
-    public void evictCurrencyRateCache(String currency) {
-        log.debug("Evicting currency rate cache for: {}", currency);
-
-        Cache cache = cacheManager.getCache(CURRENCY_RATE_CACHE);
-        if (cache != null) {
-            cache.evict(currency);
-            log.debug("Currency rate cache evicted for: {}", currency);
-        }
-    }
-
-
     public void evictCache(String cacheName) {
         Cache cache = cacheManager.getCache(cacheName);
         if (cache != null) {
@@ -65,15 +54,6 @@ public class CacheService {
         }
     }
 
-
-    public void putWithTtl(String key, Object value, long timeout, TimeUnit timeUnit) {
-        try {
-            redisTemplate.opsForValue().set(key, value, timeout, timeUnit);
-            log.debug("Cached value with key: {} and TTL: {} {}", key, timeout, timeUnit);
-        } catch (Exception e) {
-            log.error("Error caching value with key: {}", key, e);
-        }
-    }
 
 
     public Object get(String key) {
@@ -86,53 +66,12 @@ public class CacheService {
     }
 
 
-    public boolean hasKey(String key) {
-        try {
-            return Boolean.TRUE.equals(redisTemplate.hasKey(key));
-        } catch (Exception e) {
-            log.error("Error checking key existence: {}", key, e);
-            return false;
-        }
+
+
+
+
+
+
     }
 
 
-    public void delete(String key) {
-        try {
-            redisTemplate.delete(key);
-            log.debug("Deleted key from cache: {}", key);
-        } catch (Exception e) {
-            log.error("Error deleting key: {}", key, e);
-        }
-    }
-
-
-    public Set<String> getKeys(String pattern) {
-        try {
-            return redisTemplate.keys(pattern);
-        } catch (Exception e) {
-            log.error("Error getting keys with pattern: {}", pattern, e);
-            return Set.of();
-        }
-    }
-
-
-    public void logCacheStatistics() {
-        try {
-            Set<String> allKeys = redisTemplate.keys("*");
-            log.info("Total cache keys: {}", allKeys != null ? allKeys.size() : 0);
-
-            // Log cache sizes for our main caches
-            logCacheSize(ALL_RATES_CACHE);
-            logCacheSize(CURRENCY_RATE_CACHE);
-            logCacheSize(HISTORICAL_RATES_CACHE);
-
-        } catch (Exception e) {
-            log.error("Error retrieving cache statistics", e);
-        }
-    }
-
-    private void logCacheSize(String cachePattern) {
-        Set<String> keys = getKeys(cachePattern + "*");
-        log.debug("Cache '{}' contains {} keys", cachePattern, keys.size());
-    }
-}

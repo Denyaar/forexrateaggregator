@@ -54,14 +54,12 @@ public class ForexAggregationService {
 
     @PostConstruct
     public void init() {
-        // Parse the comma-separated string into a list
         if (targetCurrenciesString != null && !targetCurrenciesString.trim().isEmpty()) {
             targetCurrencies = Arrays.stream(targetCurrenciesString.split(","))
                     .map(String::trim)
                     .map(String::toUpperCase)
                     .collect(Collectors.toList());
         } else {
-            // Default currencies if not configured
             targetCurrencies = Arrays.asList("GBP", "ZAR");
         }
 
@@ -69,9 +67,6 @@ public class ForexAggregationService {
                 baseCurrency, targetCurrencies);
     }
 
-    /**
-     * Get all current forex rates
-     */
     @Cacheable(value = "allRates", unless = "#result == null")
     public ForexDTOs.AllRatesResponse getAllRates() {
         log.info("Fetching all current forex rates");
@@ -101,9 +96,6 @@ public class ForexAggregationService {
                 .build();
     }
 
-    /**
-     * Get rate for specific currency pair
-     */
     @Cacheable(value = "currencyRate", key = "#currency", unless = "#result == null")
     public ForexDTOs.ForexRateResponse getRateForCurrency(String currency) {
         log.info("Fetching rate for currency: {}", currency);
@@ -124,9 +116,7 @@ public class ForexAggregationService {
                 .orElseThrow(() -> new RuntimeException("Unable to fetch rate for currency: " + currency));
     }
 
-    /**
-     * Get historical rates for currency pair
-     */
+
     public ForexDTOs.HistoricalRatesResponse getHistoricalRates(String currency, int days, int page, int size) {
         log.info("Fetching historical rates for currency: {} for {} days", currency, days);
 
