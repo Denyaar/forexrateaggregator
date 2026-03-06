@@ -21,9 +21,16 @@ import java.time.LocalDateTime;
 
 /**
  * Entity representing aggregated forex rates with markup applied.
+ * Includes indexes for optimized query performance on currency pair and timestamp lookups.
  */
 @Entity
-@Table(name = "forex_rates")
+@Table(name = "forex_rates",
+        indexes = {
+                @Index(name = "idx_currency_pair", columnList = "currency_pair"),
+                @Index(name = "idx_currency_pair_timestamp", columnList = "currency_pair, timestamp DESC"),
+                @Index(name = "idx_timestamp", columnList = "timestamp DESC"),
+                @Index(name = "idx_base_target", columnList = "base_currency, target_currency")
+        })
 @Data
 @Builder
 @NoArgsConstructor

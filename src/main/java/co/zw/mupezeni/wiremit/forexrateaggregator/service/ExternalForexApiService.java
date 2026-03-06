@@ -3,6 +3,8 @@ package co.zw.mupezeni.wiremit.forexrateaggregator.service;
 import co.zw.mupezeni.wiremit.forexrateaggregator.dto.ForexDTOs;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -91,8 +93,10 @@ public class ExternalForexApiService {
     }
 
     /**
-     * Fetch rates from Exchange Rate API
+     * Fetch rates from Exchange Rate API with circuit breaker and retry
      */
+    @CircuitBreaker(name = "externalApi", fallbackMethod = "fallbackResponse")
+    @Retry(name = "externalApi")
     private CompletableFuture<ForexDTOs.ExternalApiResponse> fetchFromExchangeRateApi(String baseCurrency) {
         return CompletableFuture.supplyAsync(() -> {
             try {
@@ -112,12 +116,7 @@ public class ExternalForexApiService {
 
             } catch (Exception e) {
                 log.error("Error fetching from Exchange Rate API", e);
-                return ForexDTOs.ExternalApiResponse.builder()
-                        .source("ExchangeRate-API")
-                        .success(false)
-                        .error(e.getMessage())
-                        .timestamp(LocalDateTime.now())
-                        .build();
+                throw new RuntimeException("Exchange Rate API failure: " + e.getMessage(), e);
             }
         });
     }
@@ -328,5 +327,21 @@ public class ExternalForexApiService {
                     .timestamp(LocalDateTime.now())
                     .build();
         }
+    }
+
+    /**
+     * Fallback method when circuit breaker is open or all retries fail
+     */
+    private CompletableFuture<ForexDTOs.ExternalApiResponse> fallbackResponse(String baseCurrency, Exception e) {
+        log.warn("Fallback triggered for base currency: {}. Reason: {}", baseCurrency, e.getMessage());
+
+        return CompletableFuture.completedFuture(
+                ForexDTOs.ExternalApiResponse.builder()
+                        .source("FALLBACK")
+                        .success(false)
+                        .error("Service temporarily unavailable: " + e.getMessage())
+                        .timestamp(LocalDateTime.now())
+                        .build()
+        );
     }
 }

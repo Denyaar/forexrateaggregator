@@ -12,7 +12,7 @@ spring:
     name: forexrateaggregator
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/forexratedb
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/forexratedb}
     username: ${DB_USERNAME:root}
     password: ${DB_PASSWORD:Mupezeni0102?}
     driver-class-name: org.postgresql.Driver
@@ -73,15 +73,43 @@ forex:
   markup: 0.10
   refresh-interval: 3600000 # 1 hour in milliseconds
 
+# Resilience4j Configuration
+resilience4j:
+  circuitbreaker:
+    instances:
+      externalApi:
+        register-health-indicator: true
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        permitted-number-of-calls-in-half-open-state: 3
+        automatic-transition-from-open-to-half-open-enabled: true
+        wait-duration-in-open-state: 10s
+        failure-rate-threshold: 50
+        event-consumer-buffer-size: 10
+  retry:
+    instances:
+      externalApi:
+        max-attempts: 3
+        wait-duration: 2s
+        enable-exponential-backoff: true
+        exponential-backoff-multiplier: 2
+  timelimiter:
+    instances:
+      externalApi:
+        timeout-duration: 10s
+
 # Actuator Configuration
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,prometheus
+        include: health,info,metrics,prometheus,circuitbreakers,ratelimiters
   endpoint:
     health:
       show-details: when-authorized
+  health:
+    circuitbreakers:
+      enabled: true
 
 # Logging Configuration
 logging:

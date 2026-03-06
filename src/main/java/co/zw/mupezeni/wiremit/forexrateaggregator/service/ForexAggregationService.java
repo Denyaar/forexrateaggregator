@@ -160,7 +160,7 @@ public class ForexAggregationService {
     }
 
     /**
-     * Update all forex rates
+     * Update all forex rates including cross-rates
      */
     @Async
     public CompletableFuture<ForexDTOs.RateUpdateStatus> updateAllRates() {
@@ -170,6 +170,7 @@ public class ForexAggregationService {
         List<String> failedPairs = new ArrayList<>();
         Map<String, Boolean> apiResponses = new HashMap<>();
 
+        // Update direct pairs (USD-GBP, USD-ZAR)
         for (String targetCurrency : targetCurrencies) {
             try {
                 updateRateForCurrency(targetCurrency);
@@ -181,6 +182,14 @@ public class ForexAggregationService {
                 failedPairs.add(currencyPair);
                 log.error("Failed to update rate for: {}", currencyPair, e);
             }
+        }
+
+        // Calculate and update cross-rates (ZAR-GBP)
+        try {
+            updateCrossRates();
+            log.info("Successfully updated cross-rates");
+        } catch (Exception e) {
+            log.error("Failed to update cross-rates", e);
         }
 
         // Clear cache after update
@@ -323,6 +332,69 @@ public class ForexAggregationService {
      */
     private String generateCurrencyPair(String base, String target) {
         return String.format("%s-%s", base.toUpperCase(), target.toUpperCase());
+    }
+
+    /**
+     * Update cross-rates (e.g., ZAR-GBP calculated from USD-ZAR and USD-GBP)
+     */
+    private void updateCrossRates() {
+        log.info("Calculating cross-rates");
+
+        // For ZAR-GBP: divide USD-ZAR by USD-GBP (how many GBP for 1 ZAR)
+        if (targetCurrencies.contains("ZAR") && targetCurrencies.contains("GBP")) {
+            calculateAndSaveCrossRate("ZAR", "GBP");
+        }
+    }
+
+    /**
+     * Calculate cross-rate between two non-base currencies
+     * Formula: If we have USD-ZAR and USD-GBP, then ZAR-GBP = USD-GBP / USD-ZAR
+     */
+    private void calculateAndSaveCrossRate(String fromCurrency, String toCurrency) {
+        try {
+            // Get latest rates for both currency pairs
+            String pair1 = generateCurrencyPair(baseCurrency, fromCurrency); // USD-ZAR
+            String pair2 = generateCurrencyPair(baseCurrency, toCurrency);   // USD-GBP
+
+            Optional<ForexRate> rate1 = forexRateRepository.findFirstByCurrencyPairOrderByTimestampDesc(pair1);
+            Optional<ForexRate> rate2 = forexRateRepository.findFirstByCurrencyPairOrderByTimestampDesc(pair2);
+
+            if (rate1.isEmpty() || rate2.isEmpty()) {
+                log.warn("Cannot calculate cross-rate {}-{}: missing base rates", fromCurrency, toCurrency);
+                return;
+            }
+
+            ForexRate usdFrom = rate1.get(); // USD-ZAR
+            ForexRate usdTo = rate2.get();   // USD-GBP
+
+            // Calculate cross-rate: ZAR-GBP = USD-GBP / USD-ZAR
+            BigDecimal crossAverageRate = usdTo.getAverageRate()
+                    .divide(usdFrom.getAverageRate(), SCALE, ROUNDING_MODE);
+
+            BigDecimal crossCustomerRate = usdTo.getCustomerRate()
+                    .divide(usdFrom.getCustomerRate(), SCALE, ROUNDING_MODE);
+
+            // Create cross-rate entry
+            String crossPair = generateCurrencyPair(fromCurrency, toCurrency);
+
+            ForexRate crossRate = ForexRate.builder()
+                    .currencyPair(crossPair)
+                    .baseCurrency(fromCurrency)
+                    .targetCurrency(toCurrency)
+                    .averageRate(crossAverageRate)
+                    .customerRate(crossCustomerRate)
+                    .markup(markup)
+                    .apiSources("CROSS-RATE")
+                    .sourceCount(1)
+                    .timestamp(LocalDateTime.now())
+                    .build();
+
+            forexRateRepository.save(crossRate);
+            log.info("Calculated and saved cross-rate: {} = {}", crossPair, crossCustomerRate);
+
+        } catch (Exception e) {
+            log.error("Error calculating cross-rate {}-{}", fromCurrency, toCurrency, e);
+        }
     }
 
     /**
