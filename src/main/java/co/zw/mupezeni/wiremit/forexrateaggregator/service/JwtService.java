@@ -38,12 +38,17 @@ public class JwtService {
             Algorithm algorithm = Algorithm.HMAC256(secret);
             Date expirationDate = new Date(System.currentTimeMillis() + expiration);
 
+            String authorities = userDetails.getAuthorities().stream()
+                    .map(auth -> auth.getAuthority())
+                    .reduce((a, b) -> a + "," + b)
+                    .orElse("");
+
             return JWT.create()
                     .withIssuer(ISSUER)
                     .withSubject(userDetails.getUsername())
                     .withIssuedAt(new Date())
                     .withExpiresAt(expirationDate)
-                    .withClaim("authorities", userDetails.getAuthorities().toString())
+                    .withClaim("authorities", authorities)
                     .sign(algorithm);
         } catch (JWTCreationException e) {
             log.error("Error creating JWT token for user: {}", userDetails.getUsername(), e);
