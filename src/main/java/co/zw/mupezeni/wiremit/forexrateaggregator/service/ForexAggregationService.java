@@ -400,7 +400,7 @@ public class ForexAggregationService {
     /**
      * Get configured target currencies
      */
-    public List<String> getTargetCurrencies() {
-        return new ArrayList<>(targetCurrencies);
-    }
+//    public List<String> getTargetCurrencies() {
+//        return new ArrayList<>(targetCurrencies);
+//    }
 }
